@@ -30,8 +30,8 @@ def main():
 	CL = classlist(data)
 	end = time.time()
 	#print CL.leaves
-	print CL.displayTree()
-	print "SLIQ took " + str(end - start) + " seconds"
+	print(CL.displayTree())
+	print("SLIQ took " + str(end - start) + " seconds")
 
 if __name__ == '__main__':
 	main()

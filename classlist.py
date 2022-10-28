@@ -321,26 +321,26 @@ class classlist:
 	
 	
 	def displayTree( self ):
-		print "Tree Structure:"
+		print("Tree Structure:")
 		self.sortList( self.leafConnect, 0 )
 		currentNode = 0
 		childNodes = ""
 		for pair in self.leafConnect:
 			if currentNode != pair[0]:
 				if currentNode != 0:
-					print "N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') )
+					print ("N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') ))
 				currentNode = pair[0]
 				childNodes = ""
 			childNodes += ", N{0}".format( pair[1] )
-		print "N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') )
+		print("N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') ))
 		
-		print "\nNode Properties:"
+		print("\nNode Properties:")
 		self.sortList( self.leaves, 0 )
 		for node in self.leaves:
 			if node[2] == "":
-				print "N{0} is determined when attribute value is '{1}'".format( node[0], node[1])
+				print ("N{0} is determined when attribute value is '{1}'".format( node[0], node[1]))
 			else:
-				print "N{0} is determined when attribute value is '{1}' and have class '{2}'".format( node[0], node[1], node[2])
+				print ("N{0} is determined when attribute value is '{1}' and have class '{2}'".format( node[0], node[1], node[2]))
 		return ""
 
 """
