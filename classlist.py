@@ -62,10 +62,14 @@ class classlist:
 	#	[ rid, car, leaf ],
 	#	[ rid, car, leaf ]
 	# ]
+	#DONE
 	def init( self ):
 		classValues = []
 		
 		for row in self.data:
+			#
+			print(row)
+			#
 			self.attrList.append( row[0: len(row) - 1] )
 			self.classList.append( [ row[0], row[len(row) - 1], self.newLeaf ] )
 			classValues.append( row[len(row) - 1] )
@@ -80,16 +84,18 @@ class classlist:
 	# 	[ rid, age, salary, marital, car ],
 	# 	[ rid, age, salary, marital, car ]
 	# ]
+	#DONE
 	def addID( self ):
 		for i in range( len(self.data) ):
 			self.data[i].insert( 0, i )
 	
-	
+	#DONE
 	# Sorts the atrribute list base on the column number
 	def sortList( self, attributeList, columnNumber ):
 		attributeList.sort( key=lambda value: value[columnNumber] )
 	
 	
+	#DONE
 	# Returns an list of values of a single attribute
 	def getSingleAttrList( self, leafList, colIndex ):
 		aList = []
@@ -100,12 +106,13 @@ class classlist:
 	
 	# Returns a record from a list with matching rid
 	# The list is either attribute list or classlist
+	#DONE
 	def getRecordBaseOnRID( self, aList, rid ):
 		for record in aList:
 			if record[0] == rid:
 				return record
 				
-	
+	# DONE
 	# Returns the class of a record
 	def getClassByRID( self, rid ):
 		
@@ -113,14 +120,14 @@ class classlist:
 			if record[0] == rid:
 				return record[1]
 	
-	
+	#DONE
 	# set leaf by rid
 	def setLeafByRID( self, rid, leafNumber ):
 		for record in self.classList:
 			if record[0] == rid:
 				record[2] = leafNumber
 	
-	
+	#DONE
 	# Returns attribute records with the same leaf number
 	def getAttrListBaseOnLeaf( self, aList, leaf ):
 		newAttrList = []
@@ -129,7 +136,7 @@ class classlist:
 				newAttrList.append( self.getRecordBaseOnRID( aList, record[0] ) )
 		return newAttrList
 	
-	
+	#DONE
 	def removeAttr( self, aList, colIndex ):
 		newList = []
 		for record in aList:
@@ -143,6 +150,7 @@ class classlist:
 	#		[	0, 0, 0	]
 	#		[	0, 0, 0	]
 	# ]
+	#DONE
 	def createEmptyHistogram( self, n ):
 		emptyHistogram = []
 		
@@ -153,7 +161,7 @@ class classlist:
 			emptyHistogram.append( row )
 		return emptyHistogram
 	
-	
+	# DONE
 	def checkAllOneClass( self, newLeafAttrList ):
 		currentClass = self.getClassByRID( newLeafAttrList[0][0] )
 		for row in newLeafAttrList:
@@ -164,6 +172,7 @@ class classlist:
 		
 	# Returns the entropy calculated by the list of probabilities
 	# make sure the list of probabilities sums up to total
+	#DONE
 	def calculateEntropy( self, probabilities, total ):
 		entropy = float(0)
 		if total != 0:
@@ -328,7 +337,7 @@ class classlist:
 		for pair in self.leafConnect:
 			if currentNode != pair[0]:
 				if currentNode != 0:
-					print ("N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') ))
+					print("N{0} have the following children: {1}".format( currentNode, childNodes.lstrip(', ') ))
 				currentNode = pair[0]
 				childNodes = ""
 			childNodes += ", N{0}".format( pair[1] )
@@ -338,9 +347,9 @@ class classlist:
 		self.sortList( self.leaves, 0 )
 		for node in self.leaves:
 			if node[2] == "":
-				print ("N{0} is determined when attribute value is '{1}'".format( node[0], node[1]))
+				print("N{0} is determined when attribute value is '{1}'".format( node[0], node[1]))
 			else:
-				print ("N{0} is determined when attribute value is '{1}' and have class '{2}'".format( node[0], node[1], node[2]))
+				print("N{0} is determined when attribute value is '{1}' and have class '{2}'".format( node[0], node[1], node[2]))
 		return ""
 
 """
