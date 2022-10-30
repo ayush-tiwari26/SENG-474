@@ -1,103 +1,39 @@
 import math
+import numpy as np
+from utils import utils
 class sliq:
     def __init__(self, dataset):
-        self.dataset = dataset
-        self.setID()
-        self.classList = []
-        self.attributeList = []
-        self.uniqueClasses = []
-        self.newLeaf = 1
-        self.tree = []
-        self.leaves = []
-        self.leafConnect = []
+        self.utils = utils()
+        self.classList = list()
+        self.attributeList = list()
+        self.uniqueClasses = list()
+        self.leafCount = 1
+        self.tree = list()
+        self.leaves = list()
+        self.leafConnect = list()
 
-        self.initialize_options()
-        self.totalRecords = len(self.classList)
-        self.doSLIQ(self.attributeList, 1, 1)
+        i = 0
+        while i<len(dataset):
+            dataset[i].insert(0, i)
+            i+=1
 
-    def initialize_options(self):
         classSet = set()
-        for item in self.dataset:
+        for i in range(len(dataset)):
+            item = dataset[i]
             self.attributeList.append(item[0: len(item) - 1])
-            self.classList.append([item[0], item[len(item) - 1], self.newLeaf])
+            self.classList.append([item[0], item[len(item) - 1], self.leafCount])
             classSet.add(item[len(item) - 1])
 
+        self.totalRecords = len(self.classList)
         self.uniqueClasses = list(classSet)
-        self.newLeaf += 1
+        self.leafCount += 1
 
-    def setID(self):
-        for i in range(len(self.dataset)):
-            self.dataset[i].insert(0, i)
+        self.createSLIQ(self.attributeList, 1, 1)
 
-    # Sorts the atrribute list base on the column number
-    def sortListByColumn(self, attributeList, columnNumber):
-        attributeList.sort(key=lambda value: value[columnNumber])
-
-    # Returns an list of values of a single attribute
-    def getAttributeByColumn(self, leafList, columnIndex):
-        lst = []
-        for record in leafList:
-            lst.append(record[columnIndex])
-        return lst
-
-    def getRecordByID(self, lst, rid):
-        for record in lst:
-            if record[0] == rid:
-                return record
-
-    # DONE
-    # Returns the class of a record
-    def getClassByID(self, rid):
-
-        for record in self.classList:
-            if record[0] == rid:
-                return record[1]
-
-    # DONE
-    # set leaf by rid
-    def setLeafByID(self, rid, leafNumber):
-        for record in self.classList:
-            if record[0] == rid:
-                record[2] = leafNumber
-
-    # DONE
-    # Returns attribute records with the same leaf number
-    def getAttrListBaseOnLeaf(self, lst, leaf):
-        newAttributes = []
-        for record in self.classList:
-            if record[2] == leaf:
-                newAttributes.append(self.getRecordByID(lst, record[0]))
-        return newAttributes
-
-    # DONE
-    def removeAttr(self, lst, columnIndex):
-        newList = []
-        for record in lst:
-            newList.append(record[0:columnIndex] + record[columnIndex+1:])
-        return newList
-
-    # Initialize an histogram structure
-    # Eaxmple: n = 2, len( self.uniqueClasses ) = 3
-    # [
-    #		[	0, 0, 0	]
-    #		[	0, 0, 0	]
-    # ]
-    # DONE
-    def createEmptyHistogram(self, n):
-        emptyHistogram = []
-
-        for i in range(0, n):
-            item = []
-            for i in self.uniqueClasses:
-                item.append(0)
-            emptyHistogram.append(item)
-        return emptyHistogram
-
-    # DONE
-    def checkAllOneClass(self, newLeafAttrList):
-        currentClass = self.getClassByID(newLeafAttrList[0][0])
-        for item in newLeafAttrList:
-            if self.getClassByID(item[0]) != currentClass:
+    def checkAllOneClass(self, newLeafAttributeList):
+        currentClass = self.utils.getClassByID(newLeafAttributeList[0][0], self.classList)
+        for item in newLeafAttributeList:
+            if self.utils.getClassByID(item[0], self.classList) != currentClass:
                 return False, ""
         return True, currentClass
 
@@ -113,7 +49,7 @@ class sliq:
                     entropy += -1.0 * prob * math.log(prob, 2)
         return entropy
 
-    # Calculate the expected info of an attribute from a histogram
+    # Calculate the expected metadata of an attribute from a histogram
     # Example list
     # 			   		(	predictValue1, 	predictValue2, 	predictValue3  )
     # [
@@ -124,107 +60,96 @@ class sliq:
         expectedInfo = 0
         for attrValueRow in histogramList:
             listSum = sum(attrValueRow)
-            expectedInfo += (float(listSum) / float(self.totalRecords)) * \
-                self.calculateEntropy(attrValueRow, listSum)
+            expectedInfo += (float(listSum) / float(self.totalRecords)) * self.calculateEntropy(attrValueRow, listSum)
         return expectedInfo
 
 
-    def doSLIQ(self, attrLeafList, leafNum, level):
-        info = []					# holds all the expected info that have been calculated
-
+    def createSLIQ(self, attributeLeafList, leafNum, level):
+        metadata = list()					
+        # all the expected metadata that have been calculated
         # starting with the first attribute at index 1
-        for i in range(1, len(attrLeafList[0])):
-            self.sortListByColumn(attrLeafList, i)
-            if attrLeafList[0][i].isdigit():
+        for i in range(1, len(attributeLeafList[0])):
+            self.utils.sortListByColumn(attributeLeafList, i)
+            if attributeLeafList[0][i].isdigit():
                 # do numerical calculation
-                info.append(self.numericalCalculation(attrLeafList, i))
+                metadata.append(self.numericalCalculation(attributeLeafList, i))
             else:  # do categorical calculation
-                info.append(self.categoricalCalculation(attrLeafList, i))
-
-        # sort the gathered info values
-        self.sortListByColumn(info, 0)
-        bestInfo = info[0]
+                metadata.append(self.categoricalCalculation(attributeLeafList, i))
+        # sort the gathered metadata values
+        self.utils.sortListByColumn(metadata, 0)
+        bestInfo = metadata[0]
         bestInfo.insert(0, leafNum)
         bestInfo.insert(0, level)
         self.tree.append(bestInfo)
-
         # update leaf number
-        newLeaves = self.updateLeaf(bestInfo, attrLeafList)
-
+        newLeaves = self.updateLeaf(bestInfo, attributeLeafList)
         # remove the used attribute and find the next level leaves
-        if len(attrLeafList[0]) > 2:
-            newAttributes = self.removeAttr(attrLeafList, bestInfo[4])
+        if len(attributeLeafList[0]) > 2:
+            newAttributes = self.utils.removeAttribute(attributeLeafList, bestInfo[4])
             for newLeaf in newLeaves:
-                newLeafAttrList = self.getAttrListBaseOnLeaf(
-                    newAttributes, newLeaf[0])
+                newLeafAttributeList = self.utils.getAttributeListBaseOnLeaf(
+                    newAttributes, newLeaf[0], self.classList)
                 self.leafConnect.append([leafNum, newLeaf[0]])
-                if len(newLeafAttrList) != 0 and newLeaf[2] == "":
-                    self.doSLIQ(newLeafAttrList, newLeaf[0], level + 1)
+                if len(newLeafAttributeList) != 0 and newLeaf[2] == "":
+                    self.createSLIQ(newLeafAttributeList, newLeaf[0], level + 1)
 
         self.leaves.extend(newLeaves)
         return
 
-
-    def updateLeaf(self, info, attrLeafList):
-        newLeaves = []
-        splitValue = info[5]
-
+    def updateLeaf(self, metadata, attributeLeafList):
+        newLeaves = list()
+        splitValue = metadata[5]
         # creating new leaf numbers
-        if info[3] == "category":
+        if metadata[3] == "catagorial":
             for value in splitValue:
-                newLeaves.append([self.newLeaf, value, ""])
-                self.newLeaf += 1
+                newLeaves.append([self.leafCount, value, ""])
+                self.leafCount += 1
         else:
-            newLeaves.append([self.newLeaf, "<= " + splitValue, ""])
-            self.newLeaf += 1
-            newLeaves.append([self.newLeaf, "> " + splitValue, ""])
-            self.newLeaf += 1
+            newLeaves.append([self.leafCount, "<= " + splitValue, ""])
+            self.leafCount += 1
+            newLeaves.append([self.leafCount, "> " + splitValue, ""])
+            self.leafCount += 1
 
         # updating leaf number
-        for record in attrLeafList:
-            if info[3] == "category":
-                self.setLeafByID(
-                    record[0], newLeaves[splitValue.index(record[info[4]])][0])
+        for record in attributeLeafList:
+            if metadata[3] == "catagorial":
+                self.utils.setLeafByID(
+                    record[0], newLeaves[splitValue.index(record[metadata[4]])][0], self.classList)
             else:
-                if record[info[4]] <= splitValue:
-                    self.setLeafByID(record[0], newLeaves[0][0])
+                if record[metadata[4]] <= splitValue:
+                    self.utils.setLeafByID(record[0], newLeaves[0][0], self.classList)
                 else:
-                    self.setLeafByID(record[0], newLeaves[1][0])
+                    self.utils.setLeafByID(record[0], newLeaves[1][0], self.classList)
 
         # checking if the leaf numbers are final
         for newLeaf in newLeaves:
-            newLeafAttrList = self.getAttrListBaseOnLeaf(
-                attrLeafList, newLeaf[0])
-            result, leafClass = self.checkAllOneClass(newLeafAttrList)
+            newLeafAttributeList = self.utils.getAttributeListBaseOnLeaf(attributeLeafList, newLeaf[0], self.classList)
+            result, leafClass = self.checkAllOneClass(newLeafAttributeList)
             if result:
                 newLeaf[2] = leafClass
-
         return newLeaves
 
-
     def categoricalCalculation(self, leafList, columnIndex):
-        attrUniqueValues = list(
-            set(self.getAttributeByColumn(leafList, columnIndex)))
-        histogram = self.createEmptyHistogram(len(attrUniqueValues))
-
+        attributeUniqueValues = list(set(self.utils.getAttributeByColumn(leafList, columnIndex)))
+        histogram = self.utils.createEmptyHistogram(len(attributeUniqueValues), self.uniqueClasses)
         for item in leafList:
-            attrValueIndex = attrUniqueValues.index(item[columnIndex])
+            attrValueIndex = attributeUniqueValues.index(item[columnIndex])
             classValueIndex = self.uniqueClasses.index(
-                self.getClassByID(item[0]))
+                self.utils.getClassByID(item[0], self.classList))
             histogram[attrValueIndex][classValueIndex] += 1
 
-        return [self.calculateExpectedInfo(histogram), "category", columnIndex, attrUniqueValues]
+        return [self.calculateExpectedInfo(histogram), "catagorial", columnIndex, attributeUniqueValues]
 
 
     def numericalCalculation(self, leafList, columnIndex):
-        infoList = []
+        infoList = list()
         for splitRow in leafList:
             splitValue = splitRow[columnIndex]
-            histogram = self.createEmptyHistogram(2)
+            histogram = self.utils.createEmptyHistogram(2, self.uniqueClasses)
 
             for item in leafList:
                 classValueIndex = self.uniqueClasses.index(
-                    self.getClassByID(item[0]))
+                    self.utils.getClassByID(item[0], self.classList))
                 if item[columnIndex] <= splitValue:
                     histogram[0][classValueIndex] += 1
                 else:
@@ -237,29 +162,29 @@ class sliq:
 
         return [bestInfo, "numeric", columnIndex, leafList[bestInfoIndex][columnIndex]]
 
-    def displayTree(self):
+    def display(self):
         print("Tree Structure:")
-        self.sortListByColumn(self.leafConnect, 0)
+        self.utils.sortListByColumn(self.leafConnect, 0)
         currentNode = 0
         childNodes = ""
         for pair in self.leafConnect:
             if currentNode != pair[0]:
                 if currentNode != 0:
-                    print("N{0} have the following children: {1}".format(
+                    print("Node {0} have the following children: {1}".format(
                         currentNode, childNodes.lstrip(', ')))
                 currentNode = pair[0]
                 childNodes = ""
-            childNodes += ", N{0}".format(pair[1])
-        print("N{0} have the following children: {1}".format(
+            childNodes += ", Node {0}".format(pair[1])
+        print("Node {0} have the following children: {1}".format(
             currentNode, childNodes.lstrip(', ')))
 
         print("\nNode Properties:")
-        self.sortListByColumn(self.leaves, 0)
+        self.utils.sortListByColumn(self.leaves, 0)
         for node in self.leaves:
             if node[2] == "":
-                print("N{0} is determined when attribute value is '{1}'".format(
+                print("Node{0} is triggered when attribute value is '{1}'".format(
                     node[0], node[1]))
             else:
-                print("N{0} is determined when attribute value is '{1}' and have class {2}".format(
+                print("Node{0} is triggered when attribute value is '{1}' and have class {2}".format(
                     node[0], node[1], node[2]))
         return ""
